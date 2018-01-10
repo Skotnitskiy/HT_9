@@ -67,7 +67,7 @@ def generate_report():
 
 def json_to_html(all_records):
     df = DataFrame(all_records)
-    df.to_html('test.html')
+    df.to_html('front/test.html')
 
 
 parser = Parser()

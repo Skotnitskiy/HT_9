@@ -5,6 +5,7 @@
 	<title>Document</title>
 	<link rel="stylesheet" href="acc.css">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+	<script src="https://www.w3schools.com/lib/w3.js"></script>
 	<script src="acc.js"></script>
 </head>
 <body>
@@ -30,8 +31,10 @@
         <div class="acc-head">
 			jobstories
 		</div>
-		<div class="acc-body">
-			*jobstories*
+		<div class="acc-body" w3-include-html="test.html">
+			<script>
+			    w3.includeHTML();
+            </script>
 		</div>
 	</div>
 
