@@ -3,7 +3,8 @@ import os
 import logging.config
 import requests
 import sys
-
+import shutil
+import html
 from datetime import datetime
 from pprint import pprint
 
@@ -59,5 +60,11 @@ class Parser(object):
         return all_records
 
 
-parser = Parser()
-records = parser.get_records()
+def generate_report():
+    shutil.copytree("front/", conf.results_path + "/report")
+
+
+
+# parser = Parser()
+# records = parser.get_records()
+# generate_report()
