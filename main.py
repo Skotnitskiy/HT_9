@@ -4,9 +4,10 @@ import logging.config
 import requests
 import sys
 import shutil
-import html
+from pandas import *
 from datetime import datetime
 from pprint import pprint
+
 
 import config as conf
 
@@ -64,7 +65,12 @@ def generate_report():
     shutil.copytree("front/", conf.results_path + "/report")
 
 
+def json_to_html(all_records):
+    df = DataFrame(all_records)
+    df.to_html('test.html')
 
-# parser = Parser()
-# records = parser.get_records()
+
+parser = Parser()
+records = parser.get_records()
 # generate_report()
+json_to_html(records)
