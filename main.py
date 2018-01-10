@@ -54,10 +54,11 @@ class Parser(object):
                     self.logger.info("record {} added to result list".format(record_id))
                     pprint(record_line)
         print(len(all_records), "records")
+        return all_records
 
 
 parser = Parser()
-parser.get_records()
+records = parser.get_records()
 
 
 # def write_dict_to_csv(csv_file, csv_columns, dict_data):
