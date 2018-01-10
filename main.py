@@ -17,7 +17,7 @@ class Parser(object):
         self.logger = logging.getLogger("DataParserApp")
         self.logger.info("Program started")
         self.argpars = argparse.ArgumentParser(description='Data parse.')
-        self.argpars.add_argument('-c', action="store", dest="categorie", default=conf.default_categorie,
+        self.argpars.add_argument('-c', action="store", dest="categories", nargs='+', default=conf.default_categories,
                             choices=conf.categories_list)
         self.args = self.argpars.parse_args()
         # create dir
@@ -28,15 +28,18 @@ class Parser(object):
             self.logger.info("results directory already exists")
 
     def get_records(self):
-        self.logger.info("request was sent to obtain the list of IDs by category {}".format(self.args.categorie))
-        request = requests.get(conf.categorie_url.format(self.args.categorie))
-        self.logger.info("list is received")
-        try:
-            ids_records = request.json()
-        except requests.exceptions.RequestException as e:
-            self.logger.error(e)
-            print(e)
-            sys.exit(1)
+        ids_records = []
+        for categorie in self.args.categories:
+            self.logger.info("request was sent to obtain the list of IDs by category {}".format(categorie))
+            request = requests.get(conf.categorie_url.format(categorie))
+            self.logger.info("list is received")
+            try:
+                ids_records += request.json()
+            except requests.exceptions.RequestException as e:
+                self.logger.error(e)
+                print(e)
+                sys.exit(1)
+        print(len(ids_records), "ids received")
 
         all_records = []
         self.logger.info("report generation started...")
@@ -59,20 +62,3 @@ class Parser(object):
 
 parser = Parser()
 records = parser.get_records()
-
-
-# def write_dict_to_csv(csv_file, csv_columns, dict_data):
-#     with open(csv_file, 'w') as csvfile:
-#         writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
-#         writer.writeheader()
-#         writer.writerows(dict_data)
-#         logger.info("list of records recorded to file")
-#
-#
-# logger.info("generation headers list")
-# rep_columns = set()
-# for rec in all_records:
-#     for key in rec.keys():
-#         rep_columns.add(key)
-# logger.info(rep_columns)
-# write_dict_to_csv(conf.results_path + conf.rep_file_name, rep_columns, all_records)

@@ -1,7 +1,7 @@
 import datetime
 
 categories_list = ["askstories", "showstories", "newstories", "jobstories"]
-default_categorie = "newstories"
+default_categories = categories_list
 results_path = "../results/"
 rep_file_name = "report.csv"
 log_file_name = "hn_parser.log"
