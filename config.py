@@ -7,8 +7,8 @@ rep_file_name = "report.csv"
 log_file_name = "hn_parser.log"
 categorie_url = "https://hacker-news.firebaseio.com/v0/{}.json?print=pretty"
 item_url = 'https://hacker-news.firebaseio.com/v0/item/{}.json?print=pretty'
-from_date = datetime.date(2016, 1, 1)
-score = 5
+from_date = datetime.date(2012, 1, 1)
+score = 1
 dictLogConfig = {
     "version": 1,
     "handlers": {
