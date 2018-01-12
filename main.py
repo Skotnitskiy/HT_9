@@ -3,6 +3,7 @@ import os
 import logging.config
 import requests
 import sys
+import pickle
 from pandas import *
 from datetime import datetime
 from pprint import pprint
@@ -12,6 +13,13 @@ import config as conf
 
 
 class Parser(object):
+
+    @staticmethod
+    def init_reports():
+        for categorie in conf.categories_list:
+            if not os.path.exists('front/' + categorie + '.html'):
+                DataFrame().to_html('front/' + categorie + '.html')
+
     def __init__(self):
         logging.config.dictConfig(conf.dictLogConfig)
         self.logger = logging.getLogger("DataParserApp")
@@ -20,12 +28,7 @@ class Parser(object):
         self.argpars.add_argument('-c', action="store", dest="categories", nargs='+', default=conf.default_categories,
                             choices=conf.categories_list)
         self.args = self.argpars.parse_args()
-        # create dir
-        if not os.path.exists(conf.results_path):
-            os.mkdir(conf.results_path)
-            self.logger.info("results dir created")
-        else:
-            self.logger.info("results directory already exists")
+        self.init_reports()
 
     def get_records_id(self):
         ids_records = {}
@@ -40,12 +43,21 @@ class Parser(object):
                 print(e)
                 sys.exit(1)
             print(len(ids_records), "ids received")
+        with open("ids.pic", "wb") as f:
+            all_ids = []
+            for vals in ids_records.values():
+                for val in vals:
+                    all_ids.append(val)
+            pickle.dump(all_ids, f)
+
         return ids_records
 
     def get_records(self):
         ids_records = self.get_records_id()
         self.logger.info("report generation started...")
         all_records = []
+        with open('ids.pic', 'rb') as f:
+            pickle_ids = pickle.load(f)
         for key, val in ids_records.items():
             for id_rec in val:
                 try:
