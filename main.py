@@ -3,7 +3,6 @@ import os
 import logging.config
 import requests
 import sys
-import shutil
 from pandas import *
 from datetime import datetime
 from pprint import pprint
@@ -28,7 +27,7 @@ class Parser(object):
         else:
             self.logger.info("results directory already exists")
 
-    def get_records(self):
+    def get_records_id(self):
         ids_records = {}
         for categorie in self.args.categories:
             self.logger.info("request was sent to obtain the list of IDs by category {}".format(categorie))
@@ -40,33 +39,31 @@ class Parser(object):
                 self.logger.error(e)
                 print(e)
                 sys.exit(1)
-        print(len(ids_records), "ids received")
+            print(len(ids_records), "ids received")
+        return ids_records
 
-        all_records = []
+    def get_records(self):
+        ids_records = self.get_records_id()
         self.logger.info("report generation started...")
+        all_records = []
         for key, val in ids_records.items():
-                for id_rec in val:
-                    try:
-                        record_line = requests.get(conf.item_url.format(id_rec)).json()
-                        record_line.update({'temp_type': key})
-                    except requests.exceptions.RequestException as e:
-                        self.logger.error(e)
-                        print(e)
-                    if record_line.get("score") >= conf.score:
-                        date = datetime.date(datetime.fromtimestamp((record_line["time"])))
-                        if date >= conf.from_date:
-                            record_line["time"] = datetime.fromtimestamp((record_line["time"])).strftime(
-                                "%Y-%m-%d-%H:%M:%S")
-                            all_records.append(record_line)
-                            self.logger.info("record {} added to result list".format(id_rec))
-                            pprint(record_line)
+            for id_rec in val:
+                try:
+                    record_line = requests.get(conf.item_url.format(id_rec)).json()
+                    record_line.update({'temp_type': key})
+                except requests.exceptions.RequestException as e:
+                    self.logger.error(e)
+                    print(e)
+                if record_line.get("score") >= conf.score:
+                    date = datetime.date(datetime.fromtimestamp((record_line["time"])))
+                    if date >= conf.from_date:
+                        record_line["time"] = datetime.fromtimestamp((record_line["time"])).strftime(
+                            "%Y-%m-%d-%H:%M:%S")
+                        all_records.append(record_line)
+                        self.logger.info("record {} added to result list".format(id_rec))
+                        pprint(record_line)
                 print(len(all_records), "records")
-
         return all_records
-
-
-def generate_report():
-    shutil.copytree("front/", conf.results_path + "/report")
 
 
 def prepare_report(*args):
@@ -101,5 +98,4 @@ def json_to_html(all_records):
 
 parser = Parser()
 records = parser.get_records()
-# generate_report()
 json_to_html(records)
