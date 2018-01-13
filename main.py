@@ -18,10 +18,12 @@ class Parser(object):
     def init_reports():
         for categorie in conf.categories_list:
             if not os.path.exists('front/' + categorie + '.html'):
-                DataFrame().to_html('front/' + categorie + '.html')
+                DataFrame().to_html('front/' + categorie + '.html', index=False)
 
     def __init__(self):
         logging.config.dictConfig(conf.dictLogConfig)
+        # df = DataFrame(pandas.read_html('front/askstories.html')[0])
+        # df.to_html('test.html', index=False)
         self.logger = logging.getLogger("DataParserApp")
         self.logger.info("Program started")
         self.argpars = argparse.ArgumentParser(description='Data parse.')
@@ -102,10 +104,10 @@ def json_to_html(all_records):
     newstories_rep = DataFrame(newstories)
     jobstories_rep = DataFrame(jobstories)
 
-    askstories_rep.to_html('front/askstories.html')
-    showstories_rep.to_html('front/showstories.html')
-    newstories_rep.to_html('front/newstories.html')
-    jobstories_rep.to_html('front/jobstories.html')
+    askstories_rep.to_html('front/askstories.html', index=False)
+    showstories_rep.to_html('front/showstories.html', index=False)
+    newstories_rep.to_html('front/newstories.html', index=False)
+    jobstories_rep.to_html('front/jobstories.html', index=False)
 
 
 parser = Parser()
