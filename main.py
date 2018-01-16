@@ -22,6 +22,7 @@ class Parser(object):
 
     def __init__(self):
         logging.config.dictConfig(conf.dictLogConfig)
+        self.rep_empty = False
         # df = DataFrame(pandas.read_html('front/askstories.html')[0])
         # df.to_html('test.html', index=False)
         self.logger = logging.getLogger("DataParserApp")
@@ -45,13 +46,13 @@ class Parser(object):
                 print(e)
                 sys.exit(1)
             print(len(ids_records), "ids received")
-        with open("ids.pic", "wb") as f:
-            all_ids = []
-            for vals in ids_records.values():
-                for val in vals:
-                    all_ids.append(val)
-            pickle.dump(all_ids, f)
-
+        all_ids = []
+        for vals in ids_records.values():
+            all_ids += vals
+        if not os.path.exists('ids.pic'):
+            with open("ids.pic", "wb") as f:
+                pickle.dump(all_ids, f)
+            self.rep_empty = True
         return ids_records
 
     def get_records(self):
@@ -62,21 +63,30 @@ class Parser(object):
             pickle_ids = pickle.load(f)
         for key, val in ids_records.items():
             for id_rec in val:
-                try:
-                    record_line = requests.get(conf.item_url.format(id_rec)).json()
-                    record_line.update({'temp_type': key})
-                except requests.exceptions.RequestException as e:
-                    self.logger.error(e)
-                    print(e)
-                if record_line.get("score") >= conf.score:
-                    date = datetime.date(datetime.fromtimestamp((record_line["time"])))
-                    if date >= conf.from_date:
-                        record_line["time"] = datetime.fromtimestamp((record_line["time"])).strftime(
-                            "%Y-%m-%d-%H:%M:%S")
-                        all_records.append(record_line)
-                        self.logger.info("record {} added to result list".format(id_rec))
-                        pprint(record_line)
-                print(len(all_records), "records")
+                if id_rec not in pickle_ids or self.rep_empty:
+                    try:
+                        record_line = requests.get(conf.item_url.format(id_rec)).json()
+                        record_line.update({'temp_type': key})
+                    except requests.exceptions.RequestException as e:
+                        self.logger.error(e)
+                        print(e)
+                    if record_line.get("score") >= conf.score:
+                        date = datetime.date(datetime.fromtimestamp((record_line["time"])))
+                        if date >= conf.from_date:
+                            record_line["time"] = datetime.fromtimestamp((record_line["time"])).strftime(
+                                "%Y-%m-%d-%H:%M:%S")
+                            all_records.append(record_line)
+                            self.logger.info("record {} added to result list".format(id_rec))
+                            pprint(record_line)
+        all_ids = []
+        for vals in ids_records.values():
+            all_ids += vals
+        with open('ids.pic', 'wb') as f:
+            for id in all_ids:
+                if id not in pickle_ids:
+                    pickle_ids.append(id)
+                    print('id', id, 'added')
+            pickle.dump(pickle_ids, f)
         return all_records
 
 
@@ -87,27 +97,28 @@ def prepare_report(*args):
 
 
 def json_to_html(all_records):
-    askstories, showstories, newstories, jobstories = [], [], [], []
-    for record in all_records:
-        if record.get('temp_type') == 'askstories':
-            askstories.append(record)
-        elif record.get('temp_type') == 'showstories':
-            showstories.append(record)
-        elif record.get('temp_type') == 'newstories':
-            newstories.append(record)
-        elif record.get('temp_type') == 'jobstories':
-            jobstories.append(record)
+    if len(all_records) != 0:
+        askstories, showstories, newstories, jobstories = [], [], [], []
+        for record in all_records:
+            if record.get('temp_type') == 'askstories':
+                askstories.append(record)
+            elif record.get('temp_type') == 'showstories':
+                showstories.append(record)
+            elif record.get('temp_type') == 'newstories':
+                newstories.append(record)
+            elif record.get('temp_type') == 'jobstories':
+                jobstories.append(record)
 
-    prepare_report(askstories, showstories, newstories, jobstories)
-    askstories_rep = DataFrame(askstories)
-    showstories_rep = DataFrame(showstories)
-    newstories_rep = DataFrame(newstories)
-    jobstories_rep = DataFrame(jobstories)
+        prepare_report(askstories, showstories, newstories, jobstories)
+        askstories_rep = DataFrame(askstories)
+        showstories_rep = DataFrame(showstories)
+        newstories_rep = DataFrame(newstories)
+        jobstories_rep = DataFrame(jobstories)
 
-    askstories_rep.to_html('front/askstories.html', index=False)
-    showstories_rep.to_html('front/showstories.html', index=False)
-    newstories_rep.to_html('front/newstories.html', index=False)
-    jobstories_rep.to_html('front/jobstories.html', index=False)
+        askstories_rep.to_html('front/askstories.html', index=False)
+        showstories_rep.to_html('front/showstories.html', index=False)
+        newstories_rep.to_html('front/newstories.html', index=False)
+        jobstories_rep.to_html('front/jobstories.html', index=False)
 
 
 parser = Parser()
