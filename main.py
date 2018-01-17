@@ -23,8 +23,6 @@ class Parser(object):
     def __init__(self):
         logging.config.dictConfig(conf.dictLogConfig)
         self.rep_empty = False
-        # df = DataFrame(pandas.read_html('front/askstories.html')[0])
-        # df.to_html('test.html', index=False)
         self.logger = logging.getLogger("DataParserApp")
         self.logger.info("Program started")
         self.argpars = argparse.ArgumentParser(description='Data parse.')
@@ -61,23 +59,26 @@ class Parser(object):
         all_records = []
         with open('ids.pic', 'rb') as f:
             pickle_ids = pickle.load(f)
+        record_line = {}
         for key, val in ids_records.items():
             for id_rec in val:
                 if id_rec not in pickle_ids or self.rep_empty:
                     try:
                         record_line = requests.get(conf.item_url.format(id_rec)).json()
-                        record_line.update({'temp_type': key})
+                        if record_line is not None:
+                            record_line.update({'temp_type': key})
                     except requests.exceptions.RequestException as e:
                         self.logger.error(e)
                         print(e)
-                    if record_line.get("score") >= conf.score:
-                        date = datetime.date(datetime.fromtimestamp((record_line["time"])))
-                        if date >= conf.from_date:
-                            record_line["time"] = datetime.fromtimestamp((record_line["time"])).strftime(
-                                "%Y-%m-%d-%H:%M:%S")
-                            all_records.append(record_line)
-                            self.logger.info("record {} added to result list".format(id_rec))
-                            pprint(record_line)
+                    if record_line is not None:
+                        if record_line.get("score") >= conf.score:
+                            date = datetime.date(datetime.fromtimestamp((record_line["time"])))
+                            if date >= conf.from_date:
+                                record_line["time"] = datetime.fromtimestamp((record_line["time"])).strftime(
+                                    "%Y-%m-%d-%H:%M:%S")
+                                all_records.append(record_line)
+                                self.logger.info("record {} added to result list".format(id_rec))
+                                pprint(record_line)
         all_ids = []
         for vals in ids_records.values():
             all_ids += vals
@@ -110,15 +111,42 @@ def json_to_html(all_records):
                 jobstories.append(record)
 
         prepare_report(askstories, showstories, newstories, jobstories)
-        askstories_rep = DataFrame(askstories)
-        showstories_rep = DataFrame(showstories)
-        newstories_rep = DataFrame(newstories)
-        jobstories_rep = DataFrame(jobstories)
 
-        askstories_rep.to_html('front/askstories.html', index=False)
-        showstories_rep.to_html('front/showstories.html', index=False)
-        newstories_rep.to_html('front/newstories.html', index=False)
-        jobstories_rep.to_html('front/jobstories.html', index=False)
+        old_askstories_data_frames = pandas.read_html('front/askstories.html')
+        if len(old_askstories_data_frames) != 0:
+            old_askstories = old_askstories_data_frames[0]
+            new_askstories = DataFrame(askstories)
+            askstories_rep = pandas.concat([old_askstories, new_askstories])
+            askstories_rep.to_html('front/askstories.html', index=False)
+        else:
+            DataFrame(askstories).to_html('front/askstories.html', index=False)
+
+        old_showstories_data_frames = pandas.read_html('front/showstories.html')
+        if len(old_showstories_data_frames) != 0:
+            old_showstories = old_showstories_data_frames[0]
+            new_showstories = DataFrame(showstories)
+            showstories_rep = pandas.concat([old_showstories, new_showstories])
+            showstories_rep.to_html('front/showstories.html', index=False)
+        else:
+            DataFrame(showstories).to_html('front/showstories.html', index=False)
+
+        old_newstories_data_frames = pandas.read_html('front/newstories.html')
+        if len(old_newstories_data_frames) != 0:
+            old_newstories = old_newstories_data_frames[0]
+            new_newstories = DataFrame(newstories)
+            newstories_rep = pandas.concat([old_newstories, new_newstories])
+            newstories_rep.to_html('front/newstories.html', index=False)
+        else:
+            DataFrame(newstories).to_html('front/newstories.html', index=False)
+
+        old_jobstories_data_frames = pandas.read_html('front/jobstories.html')
+        if len(old_jobstories_data_frames) != 0:
+            old_jobstories = old_jobstories_data_frames[0]
+            new_jobstories = DataFrame(jobstories)
+            jobstories_rep = pandas.concat([old_jobstories, new_jobstories])
+            jobstories_rep.to_html('front/jobstories.html', index=False)
+        else:
+            DataFrame(jobstories).to_html('front/jobstories.html', index=False)
 
 
 parser = Parser()
