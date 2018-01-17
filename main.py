@@ -1,6 +1,8 @@
 import argparse
 import os
 import logging.config
+from datetime import datetime
+
 import requests
 import sys
 import pickle
@@ -98,6 +100,9 @@ def prepare_report(*args):
 
 
 def json_to_html(all_records):
+    with open('front/date.html', 'w') as f:
+        date = '<center><h1> Report from: ' + datetime.today().strftime("%Y-%m-%d %H:%M:%S") + '</h1></center>'
+        f.write(date)
     if len(all_records) != 0:
         askstories, showstories, newstories, jobstories = [], [], [], []
         for record in all_records:

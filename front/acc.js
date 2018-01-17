@@ -6,6 +6,7 @@ $(document).ready(function() {
 	$("#showstories").load("showstories.html");
     $("#askstories").load("askstories.html");
 	$("#jobstories").load("jobstories.html");
+	$("#date").load("date.html");
 });
 
 function f_acc(){
